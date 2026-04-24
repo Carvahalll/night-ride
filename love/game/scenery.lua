@@ -97,31 +97,23 @@ function Scenery.draw(cam_x)
 
     for _, item in ipairs(items) do
         local idata = images[item.img_idx]
-        if not idata then goto continue end
+        if idata then
+            -- Road perspective projection (mirrors Road.project logic)
+            local half_w   = C.ROAD_HALF_BOT + (C.ROAD_HALF_TOP - C.ROAD_HALF_BOT) * item.z
+            local screen_y = C.HORIZON_Y + (C.H - C.HORIZON_Y) * (1.0 - item.z)
+            local center_x = C.W / 2 + cam_x * (1.0 - item.z)
+            local screen_x = center_x + item.lane_frac * half_w * 2
+            local sc       = math.max(0, 1.0 - item.z)
 
-        -- Road perspective projection (mirrors Road.project logic)
-        local half_w   = C.ROAD_HALF_BOT + (C.ROAD_HALF_TOP - C.ROAD_HALF_BOT) * item.z
-        local screen_y = C.HORIZON_Y + (C.H - C.HORIZON_Y) * (1.0 - item.z)
-        local center_x = C.W / 2 + cam_x * (1.0 - item.z)  -- same parallax law as road objects
-        local screen_x = center_x + item.lane_frac * half_w * 2
-        local sc       = math.max(0, 1.0 - item.z)   -- same scale law as road objects
-
-        if sc < 0.01 then goto continue end
-
-        local iw = idata.w
-        local ih = idata.h
-        local draw_w = iw * sc
-        local draw_h = ih * sc
-
-        -- Draw: base of building at screen_y, horizontally centered on screen_x
-        local col = item.color
-        love.graphics.setColor(col[1], col[2], col[3], 0.92)
-        love.graphics.draw(idata.img,
-            screen_x - draw_w / 2,
-            screen_y - draw_h,
-            0, sc, sc)
-
-        ::continue::
+            if sc >= 0.01 then
+                local col = item.color
+                love.graphics.setColor(col[1], col[2], col[3], 0.92)
+                love.graphics.draw(idata.img,
+                    screen_x - idata.w * sc / 2,
+                    screen_y - idata.h * sc,
+                    0, sc, sc)
+            end
+        end
     end
 
     love.graphics.setColor(1, 1, 1, 1)
