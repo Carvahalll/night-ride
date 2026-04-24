@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v \"^$\")",
+      "Bash(ghostscript -v)",
+      "Bash(gs -v)"
+    ]
+  }
+}

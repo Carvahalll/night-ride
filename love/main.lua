@@ -12,6 +12,7 @@ local Sparks     = require("game.sparks")
 local HUD        = require("game.hud")
 local Bloom      = require("game.bloom")
 local Background = require("game.background")
+local Scenery    = require("game.scenery")
 local Input      = require("input")
 
 -- ── Globals ───────────────────────────────────────────────────────────────────
@@ -40,6 +41,8 @@ function love.load()
 
     HUD.load()
     Bloom.load(C.W, C.H)
+    Background.load()
+    Scenery.load()
 
     s = State.new()
     Input.reset()
@@ -52,12 +55,14 @@ function love.update(dt)
     s.gt = s.gt + dt
 
     Background.update(dt)
+    Scenery.update(dt, s.speed)
 
     local steer, restart = Input.poll(s.alive)
 
     if restart then
         s = State.new()
         Input.reset()
+        Scenery.reset()
         return
     end
 
@@ -139,6 +144,7 @@ function love.draw()
     love.graphics.clear(C.COL.BG[1], C.COL.BG[2], C.COL.BG[3], 1)
 
     Background.draw(s.cam_x)
+    Scenery.draw(s.cam_x)
     Road.draw(s.cam_x, s.road_offset)
 
     -- Draw objects back-to-front (highest z first = furthest away)
@@ -174,5 +180,6 @@ function love.keypressed(key)
     if key == "space" and not s.alive then
         s = State.new()
         Input.reset()
+        Scenery.reset()
     end
 end

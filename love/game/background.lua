@@ -2,73 +2,41 @@ local C    = require("game.constants")
 local Road = require("game.road")
 
 local Background = {}
-local _time = 0
+local _time    = 0
+local _pilatus = nil   -- Image object loaded in Background.load()
 
--- Pilatus/Rigi silhouette, extended ±150 px beyond screen for parallax headroom.
--- Flat array of (x, y) pairs; first and last pairs are bottom corners.
-local MOUNTAIN = {
-   -150, 260,   -- bottom-left corner (off screen)
-   -150,  80,   -- left ridge start
-     70, 138,
-    190,  55,   -- Pilatus Kulm (main peak)
-    265,  94,
-    345,  70,
-    425, 108,
-    505,  44,   -- Esel (secondary peak)
-    585,  84,
-    665, 118,
-    745,  84,
-    835,  60,
-    915,  94,
-   1005,  74,
-   1095, 108,
-   1185,  54,   -- Rigi-like bump on the right
-   1430,  84,   -- right ridge end
-   1430, 260,   -- bottom-right corner (off screen)
-}
-
-local function drawMountains(cam_x)
-    local px = cam_x * 0.035   -- gentle parallax
-
-    -- Build polygon with parallax applied to x-values only
-    local poly = {}
-    for i = 1, #MOUNTAIN, 2 do
-        poly[#poly+1] = MOUNTAIN[i] + px
-        poly[#poly+1] = MOUNTAIN[i+1]
-    end
-
-    -- Fill with deep purple
-    love.graphics.setColor(0.07, 0.01, 0.16, 1)
-    love.graphics.polygon("fill", poly)
-
-    -- Glow ridge: draw only the ridge (skip first and last bottom-corner pairs)
-    -- poly[1],poly[2] = bottom-left; poly[n-1],poly[n] = bottom-right
-    local n = #poly
-    local ridge = {}
-    for i = 3, n - 2 do
-        ridge[#ridge+1] = poly[i]
-    end
-
-    for pass = 3, 1, -1 do
-        love.graphics.setColor(0.55, 0.0, 1.0, 0.18 * pass / 3)
-        love.graphics.setLineWidth(pass * 3.5)
-        love.graphics.line(ridge)
-    end
-    love.graphics.setColor(0.65, 0.10, 1.0, 0.85)
-    love.graphics.setLineWidth(1.5)
-    love.graphics.line(ridge)
-    love.graphics.setLineWidth(1)
+function Background.load()
+    local ok, img = pcall(love.graphics.newImage, "assets/background/pilatus.png")
+    if ok then _pilatus = img end
 end
 
+-- ── Pilatus ───────────────────────────────────────────────────────────────────
+
+local function drawPilatus(cam_x)
+    if not _pilatus then return end
+
+    local iw = _pilatus:getWidth()
+    local ih = _pilatus:getHeight()
+
+    -- Scale to fill full game width; anchor at y=0 (horizon)
+    local sx = C.W / iw
+    -- Gentle horizontal parallax: the mountain barely moves with steering
+    local px = cam_x * 0.03
+
+    -- Light icy-blue tint
+    love.graphics.setColor(0.45, 0.82, 1.0, 1.0)
+    love.graphics.draw(_pilatus, px, 0, 0, sx, sx)
+    love.graphics.setColor(1, 1, 1, 1)
+end
+
+-- ── Lake sides ────────────────────────────────────────────────────────────────
+
 local function drawLake(cam_x)
-    -- Road edges at near-camera (z≈0) and near-horizon (z≈0.97)
     local lx_near, ly_near = Road.project(-0.5, 0.001, cam_x)
     local rx_near, ry_near = Road.project( 0.5, 0.001, cam_x)
     local lx_far,  ly_far  = Road.project(-0.5, 0.97,  cam_x)
     local rx_far,  ry_far  = Road.project( 0.5, 0.97,  cam_x)
 
-    -- Lake fill: dark teal quads flanking the road.
-    -- Near the bottom the road fills the full screen; the lake widens toward the horizon.
     love.graphics.setColor(0.0, 0.22, 0.30, 0.92)
 
     love.graphics.polygon("fill",
@@ -83,7 +51,7 @@ local function drawLake(cam_x)
         rx_far,  ry_far,
         C.W,     ry_far)
 
-    -- Shimmer: 8 horizontal neon-cyan lines within the lake area
+    -- Shimmer: animated cyan reflection lines
     love.graphics.setLineWidth(1)
     for i = 1, 8 do
         local t     = i / 9.0
@@ -102,12 +70,14 @@ local function drawLake(cam_x)
     love.graphics.setLineWidth(1)
 end
 
+-- ── Public API ────────────────────────────────────────────────────────────────
+
 function Background.update(dt)
     _time = _time + dt
 end
 
 function Background.draw(cam_x)
-    drawMountains(cam_x)
+    drawPilatus(cam_x)
     drawLake(cam_x)
 end
 
