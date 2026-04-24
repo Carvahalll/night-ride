@@ -34,8 +34,8 @@ end
 local function drawLake(cam_x)
     local lx_near, ly_near = Road.project(-0.5, 0.001, cam_x)
     local rx_near, ry_near = Road.project( 0.5, 0.001, cam_x)
-    local lx_far,  ly_far  = Road.project(-0.5, 0.65,  cam_x)
-    local rx_far,  ry_far  = Road.project( 0.5, 0.65,  cam_x)
+    local lx_far,  ly_far  = Road.project(-0.5, 0.97,  cam_x)
+    local rx_far,  ry_far  = Road.project( 0.5, 0.97,  cam_x)
 
     love.graphics.setColor(0.0, 0.22, 0.30, 0.92)
 

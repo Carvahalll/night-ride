@@ -5,7 +5,7 @@ C.W = 1280
 C.H = 720
 
 -- Perspective geometry
-C.HORIZON_Y      = 0
+C.HORIZON_Y      = 220
 C.ROAD_HALF_BOT  = C.W * 0.50
 C.ROAD_HALF_TOP  = C.W * 0.004
 
