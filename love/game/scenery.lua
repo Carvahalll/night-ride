@@ -30,7 +30,7 @@ local images      = {}   -- { img, w, h }
 local items       = {}   -- active scenery items
 local spawn_timer = 0
 
-local SPAWN_INTERVAL = 4.0   -- seconds between paired spawns (one per side)
+local SPAWN_INTERVAL = 12.0  -- seconds between paired spawns (one per side)
 local CULL_Z         = 0.42  -- remove item when it gets this close (before road fills screen)
 
 -- lane_frac controls how far outside the road edges the building appears.
@@ -102,7 +102,7 @@ function Scenery.draw(cam_x)
         -- Road perspective projection (mirrors Road.project logic)
         local half_w   = C.ROAD_HALF_BOT + (C.ROAD_HALF_TOP - C.ROAD_HALF_BOT) * item.z
         local screen_y = C.HORIZON_Y + (C.H - C.HORIZON_Y) * (1.0 - item.z)
-        local center_x = C.W / 2 + cam_x * (1.0 - item.z) * 0.10  -- gentler cam parallax for background
+        local center_x = C.W / 2 + cam_x * (1.0 - item.z)  -- same parallax law as road objects
         local screen_x = center_x + item.lane_frac * half_w * 2
         local sc       = math.max(0, 1.0 - item.z)   -- same scale law as road objects
 
@@ -112,9 +112,6 @@ function Scenery.draw(cam_x)
         local ih = idata.h
         local draw_w = iw * sc
         local draw_h = ih * sc
-
-        -- Skip if fully off-screen
-        if screen_x + draw_w / 2 < 0 or screen_x - draw_w / 2 > C.W then goto continue end
 
         -- Draw: base of building at screen_y, horizontally centered on screen_x
         local col = item.color
