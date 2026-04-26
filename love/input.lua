@@ -2,13 +2,26 @@
 -- LEFT brake  → left arrow
 -- RIGHT brake → right arrow
 -- Restart     → SPACE (any state) or LEFT+RIGHT simultaneously (game-over only, edge-triggered)
+-- Pointer     → click/hold left half of screen = steer left, right half = steer right
 
 local Input = {}
 
 local both_prev = false
+local ptr_steer = 0   -- from mouse/touch: -1, 0, or +1
 
 function Input.reset()
     both_prev = false
+    ptr_steer = 0
+end
+
+-- Call from love.mousepressed / love.touchpressed
+function Input.pointerDown(x, screen_w)
+    ptr_steer = (x < screen_w / 2) and 1 or -1
+end
+
+-- Call from love.mousereleased / love.touchreleased
+function Input.pointerUp()
+    ptr_steer = 0
 end
 
 -- Returns: steer (-1 left, +1 right, 0 none), restart_triggered (bool)
@@ -16,9 +29,10 @@ function Input.poll(alive)
     local left  = love.keyboard.isDown("left")
     local right = love.keyboard.isDown("right")
 
-    local steer = 0
+    local steer = ptr_steer
     if left  then steer = steer + 1 end   -- left brake → steer left (cam_x positive)
     if right then steer = steer - 1 end   -- right brake → steer right
+    steer = math.max(-1, math.min(1, steer))
 
     local both_now = left and right
     local restart  = false
