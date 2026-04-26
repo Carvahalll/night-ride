@@ -7,6 +7,17 @@ local Objects = {}
 local OBS_SIZES  = {4,8,12,16,22,28,36,46,58,72,88,104,120}
 local COIN_SIZES = {3,5,7,10,14,18,22,28,34}
 
+-- Uses image alpha as a mask; outputs the current draw color (ignores pixel RGB).
+local SILHOUETTE_SHADER = love.graphics.newShader([[
+    vec4 effect(vec4 color, Image tex, vec2 uv, vec2 sc) {
+        float a = Texel(tex, uv).a;
+        if (a < 0.01) { discard; }
+        return vec4(color.rgb, color.a * a);
+    }
+]])
+
+local swan_img = nil   -- loaded by Objects.load()
+
 local function nearest(val, lst)
     local best, bd = lst[1], math.huge
     for _, v in ipairs(lst) do
@@ -58,45 +69,6 @@ local function drawCircleGlow(col, cx, cy, r, passes, spread)
         math.min(1, col[2]+0.55),
         math.min(1, col[3]+0.55), 1)
     love.graphics.circle("fill", cx, cy, math.max(1, r/3))
-end
-
--- ── Swan drawing ──────────────────────────────────────────────────────────────
-
-local function drawSwan(sx, sy, scale, pulse)
-    if scale < 0.04 then return end
-
-    local bw = math.max(4, math.floor(90 * scale))   -- body ellipse x-radius * 2
-    local bh = math.max(3, math.floor(38 * scale))   -- body ellipse y-radius * 2
-    local nr = math.max(2, math.floor(24 * scale))   -- neck length
-    local hr = math.max(2, math.floor(10 * scale))   -- head radius
-    local p  = 0.80 + 0.20 * pulse
-
-    -- body glow
-    for i = 3, 1, -1 do
-        local inf = i * 5 * scale
-        love.graphics.setColor(p, 0.30 * p, 0.70 * p, 0.32 * i / 3)
-        love.graphics.ellipse("fill", sx, sy - bh / 2, bw / 2 + inf, bh / 2 + inf)
-    end
-    love.graphics.setColor(0.94 * p, 0.84 * p, 1.0, 1)
-    love.graphics.ellipse("fill", sx, sy - bh / 2, bw / 2, bh / 2)
-
-    -- neck + head
-    local neck_bx = sx - bw * 0.15
-    local neck_by = sy - bh
-    local nx      = sx - bw * 0.30
-    local ny      = neck_by - nr
-
-    love.graphics.setColor(0.94 * p, 0.84 * p, 1.0, 1)
-    love.graphics.setLineWidth(math.max(1, math.floor(5 * scale)))
-    love.graphics.line(neck_bx, neck_by, nx, ny)
-    love.graphics.setLineWidth(1)
-
-    for i = 2, 1, -1 do
-        love.graphics.setColor(p, 0.30 * p, 0.70 * p, 0.40 * i / 2)
-        love.graphics.circle("fill", nx, ny, hr + i * 4 * scale)
-    end
-    love.graphics.setColor(0.94 * p, 0.84 * p, 1.0, 1)
-    love.graphics.circle("fill", nx, ny, hr)
 end
 
 -- ── Gate (Kapellbrücke) drawing ───────────────────────────────────────────────
@@ -162,16 +134,33 @@ function RoadObject.new(speed, kind)
     elseif kind == 'gate'     then self.color = C.COL.AMBER
     else                           self.color = C.COL.YELLOW  -- coin
     end
+    if kind == 'swan' then
+        -- Start at one road edge, drift across to the other
+        local side       = love.math.random(0, 1) == 0 and -1 or 1
+        self.lane_frac   = side * 0.45
+        self.lane_vel    = -side * (0.10 + love.math.random() * 0.12)
+    end
     return self
 end
 
 function RoadObject:laneFrac()
+    if self.lane_frac then return self.lane_frac end
     return (self.lane / (C.NUM_OBJ_LANES - 1)) - 0.5
 end
 
 function RoadObject:update(dt)
     self.z     = self.z - self.speed * (1.0 - self.z + 0.08) * dt
     self.pulse = self.pulse + dt * 5.0
+    if self.lane_frac then
+        self.lane_frac = self.lane_frac + self.lane_vel * dt
+        if self.lane_frac > 0.46 then
+            self.lane_frac = 0.46
+            self.lane_vel  = -math.abs(self.lane_vel)
+        elseif self.lane_frac < -0.46 then
+            self.lane_frac = -0.46
+            self.lane_vel  =  math.abs(self.lane_vel)
+        end
+    end
 end
 
 function RoadObject:isHit(cam_x)
@@ -222,7 +211,19 @@ function RoadObject:draw(cam_x)
         end
 
     elseif self.kind == 'swan' then
-        drawSwan(sx, sy, scale, math.sin(self.pulse))
+        if swan_img and scale >= 0.03 then
+            local iw      = swan_img:getWidth()
+            local ih      = swan_img:getHeight()
+            local draw_sc = (160 * scale) / iw
+            local draw_h  = ih * draw_sc
+            -- Flip to face direction of travel
+            local flip    = (self.lane_vel and self.lane_vel > 0) and -1 or 1
+            love.graphics.setShader(SILHOUETTE_SHADER)
+            love.graphics.setColor(pulse, pulse, pulse, 0.95)
+            love.graphics.draw(swan_img, sx, sy - draw_h,
+                0, flip * draw_sc, draw_sc, iw / 2, 0)
+            love.graphics.setShader()
+        end
 
     elseif self.kind == 'gate' then
         local lx, ly = Road.project(-0.5, self.z, cam_x)
@@ -245,12 +246,37 @@ function RoadObject:draw(cam_x)
     end
 end
 
--- ── Module-level spawn helpers ────────────────────────────────────────────────
+-- ── Module-level load / spawn helpers ────────────────────────────────────────
 
-function Objects.newObstacle(speed)
+function Objects.load()
+    local ok, img = pcall(love.graphics.newImage, "assets/obstacles/swan.png")
+    if ok then swan_img = img end
+end
+
+function Objects.newObstacle(speed, active_objects)
     -- 30% chance a swan waddles onto the road instead of a car
     local kind = (love.math.random() < 0.30) and 'swan' or 'obstacle'
-    return RoadObject.new(speed, kind)
+    local obj  = RoadObject.new(speed, kind)
+
+    -- Re-roll the lane until it doesn't overlap a live swan (cars only).
+    -- Each lane covers ±0.13 of lane_frac space; two retries are enough.
+    if kind == 'obstacle' and active_objects then
+        local lane_spacing = 1.0 / (C.NUM_OBJ_LANES - 1)
+        for attempt = 1, C.NUM_OBJ_LANES do
+            local frac     = obj:laneFrac()
+            local blocked  = false
+            for _, o in ipairs(active_objects) do
+                if o.kind == 'swan' and math.abs(o.lane_frac - frac) < lane_spacing * 0.6 then
+                    blocked = true
+                    break
+                end
+            end
+            if not blocked then break end
+            obj.lane = (obj.lane + 1) % C.NUM_OBJ_LANES
+        end
+    end
+
+    return obj
 end
 function Objects.newCoin(speed)  return RoadObject.new(speed, 'coin') end
 function Objects.newGate(speed)  return RoadObject.new(speed, 'gate') end

@@ -27,7 +27,7 @@ function HUD.draw(score, speed, combo, gt)
     love.graphics.print(sc_str, 28, 12)
 
     -- Speed — top right
-    local kmh = tostring(math.floor(speed * 22))
+    local kmh = tostring(math.floor(speed * 3))
     love.graphics.setFont(font_tiny)
     love.graphics.setColor(0.35, 0.24, 0.59, 1)
     love.graphics.print("KM/H", C.W - 215, 14)

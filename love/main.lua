@@ -43,6 +43,7 @@ function love.load()
     Bloom.load(C.W, C.H)
     Background.load()
     Scenery.load()
+    Objects.load()
 
     s = State.new()
     Input.reset()
@@ -93,7 +94,7 @@ function love.update(dt)
     s.obs_timer = s.obs_timer + dt
     if s.obs_timer >= C.OBSTACLE_INTERVAL then
         s.obs_timer = 0
-        s.objects[#s.objects+1] = Objects.newObstacle(s.speed * 0.026)
+        s.objects[#s.objects+1] = Objects.newObstacle(s.speed * 0.026, s.objects)
     end
     s.coin_timer = s.coin_timer + dt
     if s.coin_timer >= C.COIN_INTERVAL then
