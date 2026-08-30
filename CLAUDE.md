@@ -1,4 +1,4 @@
-# Night Ride — Claude Code project guide
+# Streetlighter — Claude Code project guide
 
 First-person neon bicycle racer, built as an outdoor art installation ("Lilu" / "Streetlighter" project). A real bicycle with Arduino brake triggers drives the game via simulated keyboard input.
 
@@ -7,7 +7,7 @@ First-person neon bicycle racer, built as an outdoor art installation ("Lilu" / 
 ## Orientation
 
 - Active development is in `love/` (Love2D / Lua). Run with `love love/` from repo root.
-- `nightride_game.py` is the original pygame prototype — **reference only, do not modify or delete**. It documents the gameplay/collision logic the Love2D port must match exactly.
+- `streetlighter_game.py` is the original pygame prototype — **reference only, do not modify or delete**. It documents the gameplay/collision logic the Love2D port must match exactly.
 - `docs/` is the GitHub Pages site (served from `main` branch). `docs/game/` is a love.js web build of the same Love2D source.
 - `arduino_code/` holds the Arduino Leonardo sketch that turns brake-lever presses into LEFT/RIGHT arrow key events (`Keyboard.h`, no external libraries).
 - Full dependency list and macOS setup steps (LÖVE, Node/love.js, conda env for the python prototype, Arduino IDE) are in `readme.md` under "Development environment setup" — check that section, not this file, when setting up a new machine.

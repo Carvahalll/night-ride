@@ -1,5 +1,5 @@
 """
-Night Ride — first-person neon bicycle racer
+Streetlighter — first-person neon bicycle racer
 Performance-first rewrite: pre-baked surfaces, no per-frame SRCALPHA allocation in hot paths.
 """
 import pygame
@@ -394,7 +394,7 @@ def make_state():
 def main():
     pygame.init()
     screen = pygame.display.set_mode((W, H), pygame.FULLSCREEN)
-    pygame.display.set_caption("Night Ride")
+    pygame.display.set_caption("Streetlighter")
     pygame.mouse.set_visible(False)
     clock = pygame.time.Clock()
 

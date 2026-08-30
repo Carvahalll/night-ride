@@ -1,4 +1,4 @@
-# Night Ride
+# Streetlighter
 
 First-person neon bicycle racer. Built as an outdoor art installation: a real bicycle with Arduino brake triggers drives the game.
 
@@ -21,7 +21,7 @@ The same Love2D source runs on both platforms without modification. Flip `FULLSC
 
 ```
 Street_Lighter/
-├── nightride_game.py           pygame prototype (reference, do not delete)
+├── streetlighter_game.py       pygame prototype (reference, do not delete)
 ├── arduino_code/               Arduino Leonardo sketch
 ├── README.md                   this file
 ├── .gitignore
@@ -68,7 +68,7 @@ GitHub Pages serves the `docs/` folder on the `main` branch automatically — pu
 **1. Rebuild the web bundle**
 
 ```bash
-npx love.js@11.4.1 -c -t "Night Ride" love/ docs/game/
+npx love.js@11.4.1 -c -t "Streetlighter" love/ docs/game/
 ```
 
 This regenerates `docs/game/game.data`, `game.js`, `love.js`, and `love.wasm`.
@@ -150,9 +150,9 @@ Everything needed to open this repo cold on a new Mac and keep working. Versions
 | LÖVE (love2d) | 11.5 | see note below | Running/testing the game (`love love/`) |
 | Xcode Command Line Tools | — | `xcode-select --install` | `git`, compilers; `sips` (used in the asset pipeline) ships with macOS itself, no separate install |
 | Node.js | v26.4.0 (Homebrew) | `brew install node` — only used to run `npx love.js`, not part of the game runtime | Rebuilding the web bundle (`docs/game/`) |
-| Python | 3.11.16 + pygame 2.6.1 (conda env `bicycle-game`, via miniforge) | `brew install --cask miniforge && conda init zsh`, then `conda create -n bicycle-game python=3.11 pygame` | Running the pygame prototype `nightride_game.py` only — not required for the Love2D game |
+| Python | 3.11.16 + pygame 2.6.1 (conda env `bicycle-game`, via miniforge) | `brew install --cask miniforge && conda init zsh`, then `conda create -n bicycle-game python=3.11 pygame` | Running the pygame prototype `streetlighter_game.py` only — not required for the Love2D game |
 | Git | system | via Xcode CLT | Version control; large `love.wasm` push needs `http.postBuffer=524288000` (see deploy section above) |
-| Arduino IDE | 2.x | https://www.arduino.cc/en/software | Flashing `arduino_code/nightride_controller.py/nightride_controller.py.ino` to the Arduino Leonardo. Uses only the built-in `Keyboard.h` library — no extra board packages needed beyond the standard AVR core (Leonardo is supported out of the box). |
+| Arduino IDE | 2.x | https://www.arduino.cc/en/software | Flashing `arduino_code/streetlighter_controller/streetlighter_controller.ino` to the Arduino Leonardo. Uses only the built-in `Keyboard.h` library — no extra board packages needed beyond the standard AVR core (Leonardo is supported out of the box). |
 
 **Apple Silicon note:** development moved from an Intel Mac to an M2 (Apple Silicon) in August 2026. Everything is now installed natively as arm64 — Homebrew at `/opt/homebrew`, a universal LÖVE binary, miniforge's arm64 Python — so nothing runs under Rosetta. Only the repo contents (code, assets, git history) move between machines: `git clone https://github.com/Carvahalll/streetlighter.git`.
 
@@ -234,7 +234,7 @@ That's sufficient to run and edit the Love2D game. Node and the conda env are on
 
 ## Pygame prototype notes
 
-`nightride_game.py` is the original prototype. Key differences from the Love2D port:
+`streetlighter_game.py` is the original prototype. Key differences from the Love2D port:
 - Uses pre-baked `SRCALPHA` surfaces for glow (expensive on Pi)
 - Hardcoded to 1920×1080 fullscreen
 - Glow cache warms on startup to avoid first-frame stutter
