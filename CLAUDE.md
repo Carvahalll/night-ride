@@ -15,9 +15,9 @@ First-person neon bicycle racer, built as an outdoor art installation ("Lilu" / 
 ## Hard constraints — do not violate
 
 - **Lua 5.1 only** in `love/`. love.js runs Lua 5.1, not LuaJIT/5.2+. No `goto`/`::label::`, no `table.unpack` with index-range args (use a helper table instead).
-- **Never touch `docs/game/shell.html`** — it's the custom dark shell and is hand-maintained; it does not survive a love.js rebuild if overwritten.
-- **Never `git add docs/game/index.html`** — `npx love.js` regenerates it with a generic default shell on every rebuild; it must stay unstaged/ignored in practice even though it's tracked.
-- After rebuilding the web bundle, only stage the specific regenerated files (`game.data`, `game.js`, `love.js`, `love.wasm`) plus any changed `love/` source — see the exact commands in `readme.md`.
+- **`docs/game/shell.html` is the source of truth for the web page** — the hand-maintained dark shell. GitHub Pages serves `docs/game/index.html`, so `index.html` must be kept as a byte-identical copy of `shell.html`. Make page edits in `shell.html`, then copy it across.
+- **`npx love.js` overwrites `index.html`** with its generic default shell every rebuild. Always run `cp docs/game/shell.html docs/game/index.html` after a rebuild, before staging — never commit a raw love.js-generated `index.html`.
+- After rebuilding, stage the regenerated files (`game.data`, `game.js`, `love.js`, `love.wasm`), the restored `index.html`, plus any changed `love/` source — see the exact commands in `readme.md`.
 - Pushing after a rebuild needs `git -c http.postBuffer=524288000 push` — the `love.wasm` (~4.5 MB) can fail a normal push otherwise.
 - This working directory is synced by OneDrive. Don't leave the game running from two machines against the same synced folder simultaneously, and let sync settle before switching machines.
 

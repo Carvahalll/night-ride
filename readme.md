@@ -49,7 +49,8 @@ Street_Lighter/
 └── docs/                       GitHub Pages site (served from main branch /docs)
     ├── index.html              landing page
     └── game/
-        ├── shell.html          custom dark shell (do NOT delete — survives rebuilds)
+        ├── shell.html          custom dark shell — SOURCE OF TRUTH, edit this one
+        ├── index.html          served page; a copy of shell.html (love.js overwrites it)
         ├── game.data           bundled game assets (rebuilt by love.js)
         ├── game.js             love.js loader glue  (rebuilt by love.js)
         ├── love.js             Emscripten runtime   (rebuilt by love.js)
@@ -72,14 +73,23 @@ npx love.js@11.4.1 -c -t "Streetlighter" love/ docs/game/
 ```
 
 This regenerates `docs/game/game.data`, `game.js`, `love.js`, and `love.wasm`.
-It also overwrites `docs/game/index.html` with a default shell — ignore that file,
-the custom shell lives in `docs/game/shell.html` and is never touched by the rebuild.
+It also overwrites `docs/game/index.html` with love.js's generic default shell.
 
-**2. Stage only the rebuilt files**
+**2. Restore the custom shell**
+
+```bash
+cp docs/game/shell.html docs/game/index.html
+```
+
+`shell.html` is the hand-maintained dark shell and is the source of truth for the
+page; `index.html` is the file GitHub Pages actually serves, so it must be a copy
+of it. Edit `shell.html` — never `index.html`, which the next rebuild will clobber.
+
+**3. Stage the rebuilt files and the restored shell**
 
 ```bash
 git add docs/game/game.data docs/game/game.js docs/game/love.js docs/game/love.wasm
-# Do NOT add docs/game/index.html
+git add docs/game/index.html   # only after the cp above — never a raw love.js index.html
 ```
 
 If you also changed Lua source or assets, stage those too:
@@ -88,7 +98,7 @@ If you also changed Lua source or assets, stage those too:
 git add love/
 ```
 
-**3. Commit and push**
+**4. Commit and push**
 
 ```bash
 git commit -m "Rebuild web bundle: <short description>"
