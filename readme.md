@@ -20,7 +20,7 @@ The same Love2D source runs on both platforms without modification. Flip `FULLSC
 ## Repository layout
 
 ```
-Night_Ride/
+Street_Lighter/
 ├── nightride_game.py           pygame prototype (reference, do not delete)
 ├── arduino_code/               Arduino Leonardo sketch
 ├── README.md                   this file
@@ -60,7 +60,7 @@ Night_Ride/
 
 ## Deploying to GitHub Pages
 
-The live site is at **https://carvahalll.github.io/night-ride/**.
+The live site is at **https://carvahalll.github.io/streetlighter/**.
 GitHub Pages serves the `docs/` folder on the `main` branch automatically — pushing is all that's needed.
 
 ### Steps
@@ -149,14 +149,24 @@ Everything needed to open this repo cold on a new Mac and keep working. Versions
 | Homebrew | — | https://brew.sh | Installing `love`, general toolchain |
 | LÖVE (love2d) | 11.5 | see note below | Running/testing the game (`love love/`) |
 | Xcode Command Line Tools | — | `xcode-select --install` | `git`, compilers; `sips` (used in the asset pipeline) ships with macOS itself, no separate install |
-| Node.js | v14.21.3 (via nvm) | `nvm install 14` (or any current LTS — only used to run `npx love.js`, not part of the game runtime) | Rebuilding the web bundle (`docs/game/`) |
-| Python | 3.11.13 (conda env `bicycle-game`) | `conda create -n bicycle-game python=3.11 pygame` | Running the pygame prototype `nightride_game.py` only — not required for the Love2D game |
+| Node.js | v26.4.0 (Homebrew) | `brew install node` — only used to run `npx love.js`, not part of the game runtime | Rebuilding the web bundle (`docs/game/`) |
+| Python | 3.11.16 + pygame 2.6.1 (conda env `bicycle-game`, via miniforge) | `brew install --cask miniforge && conda init zsh`, then `conda create -n bicycle-game python=3.11 pygame` | Running the pygame prototype `nightride_game.py` only — not required for the Love2D game |
 | Git | system | via Xcode CLT | Version control; large `love.wasm` push needs `http.postBuffer=524288000` (see deploy section above) |
 | Arduino IDE | 2.x | https://www.arduino.cc/en/software | Flashing `arduino_code/nightride_controller.py/nightride_controller.py.ino` to the Arduino Leonardo. Uses only the built-in `Keyboard.h` library — no extra board packages needed beyond the standard AVR core (Leonardo is supported out of the box). |
 
-**⚠️ Apple Silicon (M2) note:** the current dev machine is Intel (x86_64), so all of the above (Homebrew prefix `/usr/local`, LÖVE, the conda env, nvm's Node build) are x86_64 binaries. On the M2 Mac, install everything fresh natively rather than copying binaries over — a fresh Homebrew install there will correctly default to `/opt/homebrew`, and `arch -arm64 brew install ...` / native `nvm install` / native `conda`/`miniforge` will all give you arm64 builds, which run faster and avoid Rosetta entirely. Only the repo contents (code, assets, git history) need to actually move between machines — via `git clone https://github.com/Carvahalll/streetlighter.git`.
+**Apple Silicon note:** development moved from an Intel Mac to an M2 (Apple Silicon) in August 2026. Everything is now installed natively as arm64 — Homebrew at `/opt/homebrew`, a universal LÖVE binary, miniforge's arm64 Python — so nothing runs under Rosetta. Only the repo contents (code, assets, git history) move between machines: `git clone https://github.com/Carvahalll/streetlighter.git`.
 
-**⚠️ LÖVE install note:** `brew install --cask love` is deprecated upstream and is scheduled to be **disabled by Homebrew on 2026-09-01** because it fails macOS Gatekeeper. If that cask no longer works when you set up the new machine, download LÖVE 11.5 directly from https://love2d.org/ (the `.zip`/`.dmg` for macOS) and drag `love.app` into `/Applications` — the `love` CLI binary lives at `/Applications/love.app/Contents/MacOS/love`, symlink it onto your `PATH` (e.g. `ln -s /Applications/love.app/Contents/MacOS/love /opt/homebrew/bin/love`) so `love love/` keeps working as documented.
+**⚠️ LÖVE install note:** do **not** use `brew install --cask love` — it is deprecated upstream (fails the macOS Gatekeeper check) and Homebrew disables it on 2026-09-01. Install manually instead, which is how the current M2 machine is set up:
+
+```bash
+curl -L -o love.zip https://github.com/love2d/love/releases/download/11.5/love-11.5-macos.zip
+unzip love.zip && cp -R love.app /Applications/
+xattr -dr com.apple.quarantine /Applications/love.app          # clears the Gatekeeper block
+ln -sf /Applications/love.app/Contents/MacOS/love /opt/homebrew/bin/love
+love --version                                                  # LOVE 11.5 (Mysterious Mysteries)
+```
+
+The 11.5 release is a universal binary, so it runs natively on both Intel and Apple Silicon.
 
 **Note on this repo living in OneDrive:** the working directory is synced by OneDrive. LÖVE writes nothing into the project folder at runtime, so this is safe for normal use, but avoid running `love love/` from two machines against the same synced folder at the same time, and let OneDrive finish syncing before switching machines to avoid conflicted copies of source files.
 
@@ -165,11 +175,13 @@ Everything needed to open this repo cold on a new Mac and keep working. Versions
 ```bash
 git clone https://github.com/Carvahalll/streetlighter.git
 cd streetlighter
-brew install --cask love   # or the manual install above if the cask is disabled
+# install LÖVE 11.5 manually — see the LÖVE install note above
 love love/                 # should boot the game windowed at 1280x720
 ```
 
-That's sufficient to run and edit the Love2D game. Node/nvm and the conda env are only needed if you're rebuilding the web bundle or touching the pygame prototype, respectively.
+That's sufficient to run and edit the Love2D game. Node and the conda env are only needed if you're rebuilding the web bundle or touching the pygame prototype, respectively.
+
+**Git note:** the transfer between machines set the execute bit on every tracked file, which made all 54 of them show as modified. The repo now sets `core.fileMode false` locally so git ignores permission bits — if you clone onto another machine and see the same phantom "modified" list, run `git config core.fileMode false` there too.
 
 ---
 

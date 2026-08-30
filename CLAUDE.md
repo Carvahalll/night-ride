@@ -21,6 +21,15 @@ First-person neon bicycle racer, built as an outdoor art installation ("Lilu" / 
 - Pushing after a rebuild needs `git -c http.postBuffer=524288000 push` — the `love.wasm` (~4.5 MB) can fail a normal push otherwise.
 - This working directory is synced by OneDrive. Don't leave the game running from two machines against the same synced folder simultaneously, and let sync settle before switching machines.
 
+## Environment (M2 machine, set up 2026-08-30)
+
+- Machine is Apple Silicon (arm64), Homebrew at `/opt/homebrew`. Everything is native — no Rosetta.
+- LÖVE 11.5 installed manually to `/Applications/love.app` (the Homebrew cask is deprecated/disabled), symlinked at `/opt/homebrew/bin/love`.
+- Node v26.4.0 (Homebrew) — `npx love.js@11.4.1` builds fine on it; no nvm/Node 14 needed.
+- conda via miniforge; env `bicycle-game` (Python 3.11.16, pygame 2.6.1) for the pygame prototype only.
+- Repo has `core.fileMode false` set locally — the machine transfer flipped the execute bit on every tracked file. Don't "fix" the modes; leave the setting.
+- Live site: https://carvahalll.github.io/streetlighter/ (repo `Carvahalll/streetlighter`, Pages serves `docs/` on `main`).
+
 ## Current status (as of 2026-08-30)
 
 Gameplay port and GPU bloom shader are both complete (threshold → half-res Gaussian blur → additive composite). See the checklist in `readme.md` for the authoritative up-to-date state — it's a living list of `[x]`/`[ ]` items, update it there when shipping planned items, don't track status separately here.
