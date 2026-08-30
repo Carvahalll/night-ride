@@ -140,6 +140,39 @@ love love/
 
 ---
 
+## Development environment setup (macOS)
+
+Everything needed to open this repo cold on a new Mac and keep working. Versions listed are what development has been pinned to as of 2026-08-30 — newer patch versions of each tool are expected to work fine.
+
+| Tool | Version used | Install | Needed for |
+|------|--------------|---------|------------|
+| Homebrew | — | https://brew.sh | Installing `love`, general toolchain |
+| LÖVE (love2d) | 11.5 | see note below | Running/testing the game (`love love/`) |
+| Xcode Command Line Tools | — | `xcode-select --install` | `git`, compilers; `sips` (used in the asset pipeline) ships with macOS itself, no separate install |
+| Node.js | v14.21.3 (via nvm) | `nvm install 14` (or any current LTS — only used to run `npx love.js`, not part of the game runtime) | Rebuilding the web bundle (`docs/game/`) |
+| Python | 3.11.13 (conda env `bicycle-game`) | `conda create -n bicycle-game python=3.11 pygame` | Running the pygame prototype `nightride_game.py` only — not required for the Love2D game |
+| Git | system | via Xcode CLT | Version control; large `love.wasm` push needs `http.postBuffer=524288000` (see deploy section above) |
+| Arduino IDE | 2.x | https://www.arduino.cc/en/software | Flashing `arduino_code/nightride_controller.py/nightride_controller.py.ino` to the Arduino Leonardo. Uses only the built-in `Keyboard.h` library — no extra board packages needed beyond the standard AVR core (Leonardo is supported out of the box). |
+
+**⚠️ Apple Silicon (M2) note:** the current dev machine is Intel (x86_64), so all of the above (Homebrew prefix `/usr/local`, LÖVE, the conda env, nvm's Node build) are x86_64 binaries. On the M2 Mac, install everything fresh natively rather than copying binaries over — a fresh Homebrew install there will correctly default to `/opt/homebrew`, and `arch -arm64 brew install ...` / native `nvm install` / native `conda`/`miniforge` will all give you arm64 builds, which run faster and avoid Rosetta entirely. Only the repo contents (code, assets, git history) need to actually move between machines — via `git clone https://github.com/Carvahalll/streetlighter.git`.
+
+**⚠️ LÖVE install note:** `brew install --cask love` is deprecated upstream and is scheduled to be **disabled by Homebrew on 2026-09-01** because it fails macOS Gatekeeper. If that cask no longer works when you set up the new machine, download LÖVE 11.5 directly from https://love2d.org/ (the `.zip`/`.dmg` for macOS) and drag `love.app` into `/Applications` — the `love` CLI binary lives at `/Applications/love.app/Contents/MacOS/love`, symlink it onto your `PATH` (e.g. `ln -s /Applications/love.app/Contents/MacOS/love /opt/homebrew/bin/love`) so `love love/` keeps working as documented.
+
+**Note on this repo living in OneDrive:** the working directory is synced by OneDrive. LÖVE writes nothing into the project folder at runtime, so this is safe for normal use, but avoid running `love love/` from two machines against the same synced folder at the same time, and let OneDrive finish syncing before switching machines to avoid conflicted copies of source files.
+
+### Quick start on a new Mac
+
+```bash
+git clone https://github.com/Carvahalll/streetlighter.git
+cd streetlighter
+brew install --cask love   # or the manual install above if the cask is disabled
+love love/                 # should boot the game windowed at 1280x720
+```
+
+That's sufficient to run and edit the Love2D game. Node/nvm and the conda env are only needed if you're rebuilding the web bundle or touching the pygame prototype, respectively.
+
+---
+
 ## Gameplay
 
 - **Steer** left/right by squeezing the corresponding brake
